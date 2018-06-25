@@ -156,38 +156,46 @@ class VisualizationServer(BaseHTTPRequestHandler):
         # Modification server
         # This is called from modify.html.
         if path.path == '/modify':
-            sentence = query['sentence'][0]
+            responses = ""
 
-            modifications = json.loads(query['modifications'][0])
+            sentences = query['sentence'][0]
 
-            for modification in modifications:
-                index, neuron = modification['position']
+            sentences = sentences.split("\n")
 
-                modification['value'] = (
-                    means[current_network][neuron] + modification['value'] *
-                    variances[current_network][neuron]
+            for sentence in sentences:
+
+                modifications = json.loads(query['modifications'][0])
+
+                for modification in modifications:
+                    index, neuron = modification['position']
+
+                    modification['value'] = (
+                        means[current_network][neuron] + modification['value'] *
+                        variances[current_network][neuron]
+                    )
+
+                    modification['position'] = (index + 1, neuron + 1)
+
+                #(json.dumps(modifications) + '\n').encode('ascii')
+                # Put some things in
+                current_loaded_subprocess.stdin.write(
+                    (sentence + '\n').encode('ascii')
                 )
+                current_loaded_subprocess.stdin.write(
+                    (json.dumps(modifications) + '\n').encode('ascii')
+                )
+                current_loaded_subprocess.stdin.flush()
 
-                modification['position'] = (index + 1, neuron + 1)
-
-            #(json.dumps(modifications) + '\n').encode('ascii')
-            # Put some things in
-            current_loaded_subprocess.stdin.write(
-                (sentence + '\n').encode('ascii')
-            )
-            current_loaded_subprocess.stdin.write(
-                (json.dumps(modifications) + '\n').encode('ascii')
-            )
-            current_loaded_subprocess.stdin.flush()
-
-            # Get response out
-            response = current_loaded_subprocess.stdout.readline().decode('utf-8')
+                # Get response out
+                response = current_loaded_subprocess.stdout.readline().decode('utf-8')
+                if responses is not None:
+                    responses = responses + "\n" + response
+                else:
+                    responses = response
 
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({
-                'pred': response
-            }).encode('utf-8'))
+            self.wfile.write(json.dumps({'pred': responses}).encode('utf-8'))
 
         # Otherwise, run one of our endpoints.
         # We can request visualizations for individual neurons.
