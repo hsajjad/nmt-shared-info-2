@@ -20,7 +20,7 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser(description='Visualization and dissection server')
-parser.add_argument('--models', help='File with list of lines in format: `description_loc model_loc src_dict_loc targ_dict_loc`, space-separated')
+parser.add_argument('--descriptions', help='List of description files, one per line')
 parser.add_argument('--svcca', help='.pkl file output by svcca.py (optional)')
 parser.add_argument('--source', help='tokenized source file for the description files')
 
@@ -31,26 +31,19 @@ LOAD NETWORKS
 '''
 
 # Get list of network filenames
-with open(args.models) as f:
-    network_fnames = [line.strip().split(' ') for line in f]
+with open(args.descriptions) as f:
+    network_fnames = [line.strip() for line in f]
 
 all_networks = {}
-model_files = {}
-src_dicts = {}
-targ_dicts = {}
 
-for fname, mname, sdict, tdict in tqdm(network_fnames):
+for fname in tqdm(network_fnames):
     network_name = os.path.split(fname)[1]
-    network_name = network_name[:network_name.index('.')]
-
-    # Record the location of the model file for this description file
-    model_files[network_name] = os.path.abspath(mname)
-    src_dicts[network_name] = os.path.abspath(sdict)
-    targ_dicts[network_name] = os.path.abspath(tdict)
+    #network_name = network_name[:network_name.index('.')]
 
     # Load as 4000x(sentence_length)x500 matrix
-    all_networks[network_name] = load_lua(fname)#['encodings']
+    all_networks[network_name] = load_lua(fname)['encodings']
 
+print (all_networks.keys())
 means = {}
 variances = {}
 
