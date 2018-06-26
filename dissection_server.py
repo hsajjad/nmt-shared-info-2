@@ -41,7 +41,7 @@ targ_dicts = {}
 
 for fname, mname, sdict, tdict in tqdm(network_fnames):
     network_name = os.path.split(fname)[1]
-    network_name = network_name[:network_name.index('.')]
+    print ("Network Name:", network_name)
 
     # Record the location of the model file for this description file
     model_files[network_name] = os.path.abspath(mname)
@@ -49,7 +49,7 @@ for fname, mname, sdict, tdict in tqdm(network_fnames):
     targ_dicts[network_name] = os.path.abspath(tdict)
 
     # Load as 4000x(sentence_length)x500 matrix
-    all_networks[network_name] = load_lua(fname)#['encodings']
+    all_networks[network_name] = load_lua(fname)['encodings']
 
 means = {}
 variances = {}
