@@ -164,8 +164,8 @@ class VisualizationServer(BaseHTTPRequestHandler):
                 index, neuron = modification['position']
 
                 modification['value'] = (
-                    means[current_network][neuron] + modification['value'] *
-                    variances[current_network][neuron]
+                    means[current_network][neuron].item() + modification['value'] *
+                    variances[current_network][neuron].item()
                 )
 
                 modification['position'] = (index + 1, neuron + 1)
