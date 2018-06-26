@@ -2,11 +2,7 @@
 DISSECTION AND VISUALIZATION SERVER
 ===================================
 
-Run with given arguments. An example --models file is given in models-example.txt.
-
-To run visualizations, go to `localhost:8080` (or `localhost:8080/index.html`).
-
-To run modified translations, go to `localhost:8080/modify.html`.
+Documentation to come soon.
 
 '''
 import torch
@@ -21,7 +17,7 @@ import os
 
 parser = argparse.ArgumentParser(description='Visualization and dissection server')
 parser.add_argument('--descriptions', help='List of description files, one per line')
-parser.add_argument('--svcca', help='.pkl file output by svcca.py (optional)')
+parser.add_argument('--svcca', help='.pkl file output by svcca.py')
 parser.add_argument('--source', help='tokenized source file for the description files')
 
 args = parser.parse_args()
@@ -41,15 +37,15 @@ for fname in tqdm(network_fnames):
     #network_name = network_name[:network_name.index('.')]
 
     # Load as 4000x(sentence_length)x500 matrix
+    #all_networks[network_name] = load_lua(fname)
     all_networks[network_name] = load_lua(fname)['encodings']
 
-print (all_networks.keys())
+print(all_networks.keys())
 means = {}
 variances = {}
 
 # transforms
-if args.svcca is not None:
-    cca_transforms = torch.load(args.svcca)
+cca_transforms = torch.load(args.svcca)
 
 # Get means and variances
 for network in tqdm(all_networks, desc = 'norm, pca'):
@@ -111,27 +107,26 @@ class VisualizationServer(BaseHTTPRequestHandler):
 
         # You need to make a request to this first in order to initialize the pipeline.
         if path.path == '/begin-modify':
-            current_network = query['network'][0]
+            language = query['language'][0]
+            version = query['version'][0]
 
-            model_name = model_files[current_network]
-            src_dict = src_dicts[current_network]
-            targ_dict = targ_dicts[current_network]
+            model_name = 'en-%s-2m-%s' % (language, version)
+            current_network = 'en-%s-%s' % (language, version)
 
             if current_loaded_subprocess is not None:
                 current_loaded_subprocess.kill()
 
             current_loaded_subprocess = subprocess.Popen(
-                [   '/usr/bin/env',
-                    'th', # Find user's torch
-                    os.path.abspath('seq2seq-attn/dissect.lua'), # Find our modified seq2seq
-                    '-model', model_name,
-                    '-src_file', os.path.abspath(args.source),
-                    '-src_dict', src_dict,
-                    '-targ_dict', targ_dict,
+                [   '/home/anthony/torch/install/bin/th',
+                    'TODO/seq2seq-attn/dissect.lua',
+                    '-model', 'TODO/models/%s-model_final.t7' % model_name,
+                    '-src_file', 'TODO/data/testsets/tokenized-test/en.tok',
+                    '-src_dict', 'TODO/dicts/%s.src.dict' % model_name,
+                    '-targ_dict', 'TODO/dicts/%s.targ.dict' % model_name,
                     '-replace_unk', '1',
                     '-gpuid', '1'
                 ],
-                cwd = 'seq2seq-attn',
+                cwd = 'TODO/seq2seq-attn/',
                 stdin = PIPE,
                 stdout = PIPE
             )
@@ -149,25 +144,25 @@ class VisualizationServer(BaseHTTPRequestHandler):
         # Modification server
         # This is called from modify.html.
         if path.path == '/modify':
-            responses = ""
-
             sentences = query['sentence'][0]
-
             sentences = sentences.split("\n")
 
-            for sentence in sentences:
+            responses = ""
 
+            for sentence in sentences:
                 modifications = json.loads(query['modifications'][0])
 
                 for modification in modifications:
                     index, neuron = modification['position']
 
                     modification['value'] = (
-                        means[current_network][neuron] + modification['value'] *
+                        modification['value'] - means[current_network][neuron] /
                         variances[current_network][neuron]
                     )
 
                     modification['position'] = (index + 1, neuron + 1)
+
+                print(modifications)
 
                 #(json.dumps(modifications) + '\n').encode('ascii')
                 # Put some things in
@@ -181,14 +176,16 @@ class VisualizationServer(BaseHTTPRequestHandler):
 
                 # Get response out
                 response = current_loaded_subprocess.stdout.readline().decode('utf-8')
-                if responses is not None:
+                if responses is not none:
                     responses = responses + "\n" + response
                 else:
                     responses = response
 
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'pred': responses}).encode('utf-8'))
+            self.wfile.write(json.dumps({
+                'pred': responses
+            }).encode('utf-8'))
 
         # Otherwise, run one of our endpoints.
         # We can request visualizations for individual neurons.
@@ -206,7 +203,7 @@ class VisualizationServer(BaseHTTPRequestHandler):
 
             # To get an SVCCA comparison, ask for network, e.g. en-es-1/en-es-2:3
             # for the fourth canonically correlated "neuron" between en-es-1 and en-es-2.
-            if '/' in network and args.svcca is not None:
+            if '/' in network:
                 a, b = network.split('/')
 
                 pair = (a, b) if (a, b) in cca_transforms else (b, a)
