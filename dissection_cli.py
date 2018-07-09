@@ -115,8 +115,8 @@ for n in neurons:
 
     modifications = [
     	{'position': [pos, n], 'value': 0},
-    	{'position': [pos, n], 'value': -1}
-        {'position': [pos, n], 'value': 1}        
+    	{'position': [pos, n], 'value': -1},
+        {'position': [pos, n], 'value': 1},        
     ]
 
 
