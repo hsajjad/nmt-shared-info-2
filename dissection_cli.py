@@ -111,9 +111,7 @@ sentences = ["I went to school .", "UNICEF published videos depicting people bei
 neurons = [402, 369, 472, 146, 315, 440, 327,  62, 104,  83, 247,  52]
 
 pos = 1
-
 for sentence in sentences:
-
     for n in neurons:
 
         print ("Neuron:", n)
