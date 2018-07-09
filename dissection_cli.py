@@ -116,8 +116,8 @@ for sentence in sentences:
 
         print ("Neuron:", n)
         modifications = [
-        	{'position': [pos, n], 'value': 0},
-        	{'position': [pos, n], 'value': -1},
+            {'position': [pos, n], 'value': 0},
+            {'position': [pos, n], 'value': -1},
             {'position': [pos, n], 'value': 1},        
         ]
 
@@ -133,19 +133,19 @@ for sentence in sentences:
             modification['position'] = (index + 1, neuron + 1)
 
         
-        	#(json.dumps(modifications) + '\n').encode('ascii')
-        	# Put some things in
-        	current_loaded_subprocess.stdin.write(
-        	    (sentence + '\n').encode('ascii')
-        	)
-        	current_loaded_subprocess.stdin.write(
-        	    (json.dumps(modifications) + '\n').encode('ascii')
-        	)
-        	current_loaded_subprocess.stdin.flush()
+            #(json.dumps(modifications) + '\n').encode('ascii')
+            # Put some things in
+            current_loaded_subprocess.stdin.write(
+                (sentence + '\n').encode('ascii')
+            )
+            current_loaded_subprocess.stdin.write(
+                (json.dumps(modifications) + '\n').encode('ascii')
+            )
+            current_loaded_subprocess.stdin.flush()
 
-        	# Get response out
-        	response = current_loaded_subprocess.stdout.readline().decode('utf-8')
+            # Get response out
+            response = current_loaded_subprocess.stdout.readline().decode('utf-8')
 
-        	print(response.strip())
+            print(response.strip())
 
 current_loaded_subprocess.kill()
