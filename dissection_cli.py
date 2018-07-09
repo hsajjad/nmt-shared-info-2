@@ -108,7 +108,7 @@ current_loaded_subprocess.stdout.readline()
 current_loaded_subprocess.stdout.readline()
 
 sentences = ["I went to school .", "UNICEF published videos depicting people being subjected to a range of abhorrent punishments .", "UNICEF disbursed emergency cash assistance to tens of thousands of displaced families in camps .", "We underscore the need to accelerate efforts at all levels ."]
-neurons = [402 369 472 146 315 440 327  62 104  83 247  52]
+neurons = [402, 369, 472, 146, 315, 440, 327,  62, 104,  83, 247,  52]
 
 pos = 1
 for n in neurons:
